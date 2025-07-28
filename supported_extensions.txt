@@ -1,0 +1,13 @@
+pdf
+docx
+doc
+rtf
+txt
+md
+pptx
+ppt
+xlsx
+xls
+csv
+py
+sql
