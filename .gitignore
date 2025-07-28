@@ -1,1 +1,16 @@
 /target
+
+# --- Environment & Secrets ---
+# Ignore local environment variables
+.env
+*.env.local
+
+# --- Python ---
+# Ignore Python virtual environment folders
+.venv/
+venv/
+__pycache__/
+
+# --- Rust ---
+# Ignore Rust build artifacts
+/target/

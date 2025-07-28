@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  postgres-db:
+    image: pgvector/pgvector:pg16
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data # Use named volumes for prod
+
+  vector-db:
+    image: semitechnologies/weaviate:1.25.3
+    restart: always
+    environment:
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      DEFAULT_VECTORIZER_MODULE: "none"
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true" # Change for real prod
+    volumes:
+      - weaviate-data:/var/lib/weaviate # Use named volumes for prod
+
+  api:
+    build: ./services/api # Build the image from its Dockerfile
+    restart: always
+    depends_on:
+      - postgres-db
+      - vector-db
+    environment:
+      - DB_HOST=postgres-db # Services talk via container names
+      - WEAVIATE_HOST=vector-db
+      # Other env vars...
+
+  embedder:
+    build: ./services/embedder
+    restart: always
+    depends_on:
+      - vector-db
+    # Env vars...
+
+  indexer:
+    build: ./services/indexer
+    restart: always
+    depends_on:
+      - postgres-db
+    # Env vars...
+
+volumes:
+  postgres-data:
+  weaviate-data:

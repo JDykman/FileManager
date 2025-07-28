@@ -1,6 +1,8 @@
-[package]
-name = "SemanticFileManager"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+# This tells Rust tools to not expect source code in the root.
+resolver = "2" 
 
-[dependencies]
+# List all the Rust projects (crates) in this repository.
+members = [
+    "services/indexer",
+]
