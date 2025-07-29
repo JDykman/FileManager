@@ -1,4 +1,4 @@
-version: "3.8"
+# docker-compose.yml
 
 services:
   postgres-db:
@@ -9,42 +9,60 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     volumes:
-      - postgres-data:/var/lib/postgresql/data # Use named volumes for prod
+      - postgres-data:/var/lib/postgresql/data
+    # ADDED: Healthcheck to ensure the DB is ready before services connect
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   vector-db:
-    image: semitechnologies/weaviate:1.25.3
+    image: semitechnologies/weaviate:1.25.4
     restart: always
     environment:
       PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
       DEFAULT_VECTORIZER_MODULE: "none"
-      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true" # Change for real prod
+      # IMPORTANT: Set to "false" and configure API keys for real production
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
     volumes:
-      - weaviate-data:/var/lib/weaviate # Use named volumes for prod
+      - weaviate-data:/var/lib/weaviate
 
   api:
-    build: ./services/api # Build the image from its Dockerfile
+    # CHANGED: Consistent build context for all services
+    build:
+      context: .
+      dockerfile: ./services/api/Dockerfile
     restart: always
     depends_on:
-      - postgres-db
-      - vector-db
+      postgres-db:
+        condition: service_healthy
+      vector-db:
+        condition: service_started # Weaviate doesn't have a simple healthcheck command
     environment:
-      - DB_HOST=postgres-db # Services talk via container names
+      - DB_HOST=postgres-db
       - WEAVIATE_HOST=vector-db
-      # Other env vars...
+      # Add other env vars from .env file here
 
   embedder:
-    build: ./services/embedder
+    build:
+      context: .
+      dockerfile: ./services/embedder/Dockerfile
     restart: always
     depends_on:
-      - vector-db
-    # Env vars...
+      vector-db:
+        condition: service_started
+    # Add other env vars from .env file here
 
   indexer:
-    build: ./services/indexer
+    build:
+      context: .
+      dockerfile: ./services/indexer/Dockerfile
     restart: always
     depends_on:
-      - postgres-db
-    # Env vars...
+      postgres-db:
+        condition: service_healthy
+    # Add other env vars from .env file here
 
 volumes:
   postgres-data:

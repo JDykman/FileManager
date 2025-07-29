@@ -5,8 +5,6 @@ import sys
 from typing import List, Set
 
 # --- Configuration: Define supported extensions using a set ---
-# This set should contain all extensions in lowercase, without leading dots.
-# Populate this with your "Tier 1", "Tier 2", etc. extensions.
 SUPPORTED_EXTENSIONS: Set[str] = {
     "pdf", "docx", "doc", "rtf", "odt", "txt", "md",
     "pptx", "ppt", "xlsx", "xls", "csv", "py", "sql",
@@ -70,7 +68,6 @@ def main():
             if file_extension in SUPPORTED_EXTENSIONS:
                 files_to_process.append(found_file)
             else:
-                # Optionally, print a message for ignored files in folders
                 #print(f"  Skipping: '{found_file}' (Type: '{file_extension}' not supported)")
                 pass # Silently skip unsupported types in folders
 

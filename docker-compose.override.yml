@@ -1,28 +1,25 @@
-version: "3.8"
-
+# docker-compose.override.yml
 services:
   postgres-db:
     ports:
-      - "5432:5432" # Expose port to connect with a local DB client
+      - "5432:5432"
     volumes:
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   vector-db:
     ports:
-      - "8080:8080" # Expose Weaviate's API port
+      - "8080:8080"
 
   api:
     ports:
-      - "8000:8000" # Expose the FastAPI port
+      - "8000:8000"
     volumes:
-      - ./services/api/src:/app/src # Mount local source code for hot-reloading
-    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload # Dev command
+      - ./services/api/src:/app/src
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 
   embedder:
     volumes:
-      - ./services/embedder/src:/app/src # Mount local source code
+      - ./services/embedder/src:/app/src
 
   indexer:
-    volumes:
-      - ./services/indexer/src:/app/src # Mount local source code
-    # You could use cargo-watch here for auto-recompiling
+    volumes: []
