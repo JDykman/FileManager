@@ -17,7 +17,7 @@ SUPPORTED_EXTENSIONS: Set[str] = {
     "eml", "msg", "vtt", "srt"
 }
 
-# --- Utility Function: Recursive File Discovery (as discussed previously) ---
+# --- Utility Function: Recursive File Discovery ---
 def get_all_files_recursive(root_folder_path: pathlib.Path) -> List[pathlib.Path]:
     """
     Recursively gets all file paths in a given root folder.
@@ -54,16 +54,13 @@ async def process_file(file_path: str):
             - 404 Not Found: If the specified file does not exist.
     """
     # 1. Input Validation and Security
-    # Decode the URL-encoded path. FastAPI often does this automatically for query parameters,
-    # but explicit decoding ensures consistency and handles any edge cases.
+    # Decode the URL-encoded path.
     decoded_file_path = urllib.parse.unquote(file_path)
 
     # Convert the decoded string to a pathlib.Path object
     input_path = pathlib.Path(decoded_file_path)
 
-    # Basic security check: Prevent directory traversal attempts.
-    # This is crucial for paths received from users.
-    # More sophisticated checks might involve a white-list of allowed base directories.
+    # Prevent directory traversal attempts.
     if ".." in str(input_path.resolve()): # Resolve to get the absolute path without '..'
         raise HTTPException(
             status_code=400,
@@ -77,16 +74,15 @@ async def process_file(file_path: str):
             detail=f"Error: Path not found at: '{input_path}'"
         )
 
-    # 3. Path Type Check (File vs. Directory)
+    # 3. Path Type Check
     if input_path.is_file():
         file_extension = input_path.suffix.lstrip('.').lower() # Get extension, remove dot, lowercase
 
         if file_extension in SUPPORTED_EXTENSIONS:
             print(f"Processing single file: '{input_path}' (Type: '{file_extension}')")
-            # --- Place your actual file processing logic here ---
-            # Example: read file contents, perform some operation
+            # TODO actual file processing logic here
             try:
-                # This is just an example. Replace with your actual processing.
+                # TODO Replace
                 with open(input_path, 'r', encoding='utf-8', errors='ignore') as f:
                     # Read a small part to confirm access, or process fully
                     content_preview = f.read(100)
@@ -109,7 +105,6 @@ async def process_file(file_path: str):
         raise HTTPException(
             status_code=400,
             detail=f"'{input_path}' is a directory. Use the '/process-folder' endpoint for folders."
-            # Or remove this if you only want to process files here.
         )
     else:
         # Input is neither a file nor a directory (e.g., a broken symlink, device)
